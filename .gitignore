@@ -1,2 +1,4 @@
 env
-conf.py
+__pycache__
+
+conf.ini
