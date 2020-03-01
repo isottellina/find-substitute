@@ -3,13 +3,13 @@
 -- Filename: creation.sql
 -- Author: Louise <louise>
 -- Created: Tue Feb 18 22:56:42 2020 (+0100)
--- Last-Updated: Wed Feb 26 17:23:48 2020 (+0100)
+-- Last-Updated: Sun Mar  1 23:20:59 2020 (+0100)
 --          By: Louise <louise>
 --
 
 CREATE TABLE IF NOT EXISTS Categories (
        id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-       category_name VARCHAR(100) NOT NULL
+       category_name VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS Products (
