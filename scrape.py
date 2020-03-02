@@ -3,7 +3,7 @@
 # Filename: scrape.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:33:08 2020 (+0100)
-# Last-Updated: Mon Mar  2 02:59:04 2020 (+0100)
+# Last-Updated: Tue Mar  3 00:46:24 2020 (+0100)
 #           By: Louise <louise>
 #
 import database
@@ -44,10 +44,11 @@ def scrape_products(category, category_id):
             }
             for product in category_page["products"]
             # We have no business with products that don't have a nutriscore
-            # or even a product name, why is there products out there without
-            # a product name that is beyond stupid
-            if ("nutrition_grade_fr" in product and
-                "product_name" in product)
+            # or even a product name, why are there products out there without
+            # a product name that's beyond idiotic I can't even
+            if ("nutrition_grade_fr" in product
+                and "product_name" in product
+                and product["product_name"])
         ]
 
     return category_products
@@ -61,4 +62,11 @@ def scrape(cnx, lcode, ccode):
     for category in categories:
         category_id = database.get_category_id(cnx, category["name"])
         products = scrape_products(category, category_id)
-        database.add_products(cnx, products)
+
+        # We only register the products if there is 2 or more products
+        # after they have been filtered, or else there is no point.
+        # If there is no point we might as well remove the category.
+        if len(products) > 1:
+            database.add_products(cnx, products)
+        else:
+            database.remove_category(cnx, category_id)

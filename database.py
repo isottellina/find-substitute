@@ -3,7 +3,7 @@
 # Filename: database.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:36:38 2020 (+0100)
-# Last-Updated: Mon Mar  2 02:43:21 2020 (+0100)
+# Last-Updated: Tue Mar  3 00:38:33 2020 (+0100)
 #           By: Louise <louise>
 #
 import logging
@@ -44,6 +44,7 @@ def create_tables(cnx):
     cursor.close()
     return True
 
+# Scraping functions
 def add_categories(cnx, names):
     statement = "INSERT INTO Categories (category_name) VALUES (%s)"
     cursor = cnx.cursor()
@@ -53,6 +54,17 @@ def add_categories(cnx, names):
     cnx.commit()
     cursor.close()
 
+def remove_category(cnx, category_id):
+    """
+    Remove a category from the table.
+    """
+
+    statement = "DELETE FROM Categories WHERE id=%s"
+    cursor = cnx.cursor()
+    cursor.execute(statement, (category_id, ))
+    cnx.commit()
+    cursor.close()
+    
 def get_category_id(cnx, name):
     statement = "SELECT (id) FROM Categories WHERE category_name=%s"
     cursor = cnx.cursor()
@@ -81,3 +93,77 @@ def add_products(cnx, products):
     cursor.executemany(statement, products)
     cnx.commit()
     cursor.close()
+    
+# Use functions
+def get_categories(cnx, limit):
+    """
+    Return `limit` items from the Categories table.
+    """
+    
+    statement = "SELECT id FROM Categories ORDER BY RAND() LIMIT %s"
+    cursor = cnx.cursor()
+    cursor.execute(statement, (limit,))
+    query = cursor.fetchall()
+    cursor.close()
+
+    # Extract each item from each tuple in the list
+    return [i[0] for i in query]
+
+def get_products(cnx, category_id, limit):
+    """
+    Return `limit` items from the Products table
+    that belong to the category category_id.
+    We return the ID since every other field is
+    not unique and can't possibly be.
+    """
+
+    statement = ("SELECT id FROM Products WHERE category=%s "
+                 "ORDER BY RAND() LIMIT %s")
+    cursor = cnx.cursor()
+    cursor.execute(statement, (category_id, limit))
+    query = cursor.fetchall()
+    cursor.close()
+
+    # Extract each item from each tuple
+    return [i[0] for i in query]
+
+def get_category_name(cnx, id):
+    statement = "SELECT category_name FROM Categories WHERE id=%s"
+    cursor = cnx.cursor()
+    cursor.execute(statement, (id,))
+    name = cursor.fetchone()[0]
+    cursor.close()
+
+    return name
+
+def get_product_name(cnx, id):
+    statement = "SELECT product_name FROM Products WHERE id=%s"
+    cursor = cnx.cursor()
+    cursor.execute(statement, (id,))
+    name = cursor.fetchone()[0]
+    cursor.close()
+
+    return name
+
+def get_product_info(cnx, id):
+    statement = "SELECT * FROM Products WHERE id=%s"
+    cursor = cnx.cursor(dictionary = True)
+    cursor.execute(statement, (id,))
+    query = cursor.fetchone()
+    cursor.close()
+
+    return query
+
+def get_substitute(cnx, category, product):
+    statement = ("SELECT id FROM Products "
+                 "WHERE (category=%s AND id<>%s) "
+                 "ORDER BY nutriscore, RAND() LIMIT 1")
+    
+    cursor = cnx.cursor()
+    cursor.execute(statement, (category, product))
+    query = cursor.fetchone()
+    cursor.close()
+
+    # Garanteed to return a result since there is at least
+    # two products in a given category
+    return query[0]
