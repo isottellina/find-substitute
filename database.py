@@ -3,7 +3,7 @@
 # Filename: database.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:36:38 2020 (+0100)
-# Last-Updated: Mon Mar  2 00:13:52 2020 (+0100)
+# Last-Updated: Mon Mar  2 02:43:21 2020 (+0100)
 #           By: Louise <louise>
 #
 import logging
@@ -29,7 +29,12 @@ def connect(config):
 
 def create_tables(cnx):
     cursor = cnx.cursor()
-
+    cursor.execute("SHOW TABLES;")
+    if (("Categories",) in cursor
+        and ("Products",) in cursor
+        and ("Searches",) in cursor):
+        return False
+        
     with open("creation.sql", "r") as file:
         query = file.read()
         # Iterate to execute all statements
@@ -37,6 +42,7 @@ def create_tables(cnx):
             pass
     
     cursor.close()
+    return True
 
 def add_categories(cnx, names):
     statement = "INSERT INTO Categories (category_name) VALUES (%s)"

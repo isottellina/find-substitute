@@ -3,11 +3,15 @@
 -- Filename: creation.sql
 -- Author: Louise <louise>
 -- Created: Tue Feb 18 22:56:42 2020 (+0100)
--- Last-Updated: Mon Mar  2 01:25:38 2020 (+0100)
+-- Last-Updated: Mon Mar  2 02:45:56 2020 (+0100)
 --          By: Louise <louise>
 --
 
-CREATE TABLE IF NOT EXISTS Categories (
+DROP TABLE IF EXISTS Searches;
+DROP TABLE IF EXISTS Products;
+DROP TABLE IF EXISTS Categories;
+
+CREATE TABLE Categories (
        id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
        category_name VARCHAR(100) NOT NULL UNIQUE
 );
