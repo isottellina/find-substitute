@@ -3,7 +3,7 @@
 # Filename: scrape.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:33:08 2020 (+0100)
-# Last-Updated: Mon Mar  2 00:15:39 2020 (+0100)
+# Last-Updated: Mon Mar  2 02:20:59 2020 (+0100)
 #           By: Louise <louise>
 #
 import database
@@ -30,23 +30,27 @@ def scrape(cnx, lcode, ccode):
 
     logging.info("Getting and adding product info.")
 
-    # TODO: Read more, lol
-    category = categories[0]
-    category_id = database.get_category_id(cnx, category["name"])
-    category_url = category["url"] + "/1.json"
-    category_page = requests.get(category_url).json()
-    
-    category_products = [
-        {
-            "product_name": product["product_name"],
-            "nutriscore": product["nutrition_grade_fr"],
-            "category": category_id,
-            "shops": product.get("stores", ""),
-            "url": product["url"]
-        }
-        for product in category_page["products"]
-        # We have no business with products that don't have a nutriscore
-        if "nutrition_grade_fr" in product
-    ]
-
-    database.add_products(cnx, category_products)
+    for category in categories:
+        logging.info("Scraping %s.", category["name"])
+        for page_nb in range(1, (category["products"] // 20) + 2):
+            category_id = database.get_category_id(cnx, category["name"])
+            category_url = "{}/{}.json".format(category["url"], page_nb)
+            category_page = requests.get(category_url).json()
+        
+            category_products = [
+                {
+                    "product_name": product["product_name"],
+                    "nutriscore": product["nutrition_grade_fr"],
+                    "category": category_id,
+                    "shops": product.get("stores", ""),
+                    "url": product["url"]
+                }
+                for product in category_page["products"]
+                # We have no business with products that don't have a nutriscore
+                # or even a product name, why is there products out there without
+                # a product name that is beyond stupid
+                if ("nutrition_grade_fr" in product and
+                    "product_name" in product)
+            ]
+                
+            database.add_products(cnx, category_products)

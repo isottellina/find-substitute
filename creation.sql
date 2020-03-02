@@ -3,7 +3,7 @@
 -- Filename: creation.sql
 -- Author: Louise <louise>
 -- Created: Tue Feb 18 22:56:42 2020 (+0100)
--- Last-Updated: Sun Mar  1 23:20:59 2020 (+0100)
+-- Last-Updated: Mon Mar  2 01:25:38 2020 (+0100)
 --          By: Louise <louise>
 --
 
@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS Categories (
 
 CREATE TABLE IF NOT EXISTS Products (
        id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-       product_name VARCHAR(100) NOT NULL,
+       product_name VARCHAR(255) NOT NULL,
        nutriscore CHAR(1) NOT NULL,
        category INT NOT NULL,
-       shops VARCHAR(255),
-       url VARCHAR(255),
+       shops VARCHAR(512),
+       url VARCHAR(368),
        
        CONSTRAINT fk_category
        FOREIGN KEY(category)

@@ -1,4 +1,7 @@
+# Python files
 env
 __pycache__
 
+# Personal files
 conf.ini
+dump*.sql
