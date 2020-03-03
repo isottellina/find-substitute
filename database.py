@@ -1,11 +1,12 @@
-# database.py --- 
-# 
+# database.py ---
+#
 # Filename: database.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:36:38 2020 (+0100)
-# Last-Updated: Tue Mar  3 02:15:27 2020 (+0100)
+# Last-Updated: Tue Mar  3 02:53:27 2020 (+0100)
 #           By: Louise <louise>
 #
+import sys
 import logging
 import mysql.connector
 
@@ -18,29 +19,29 @@ def connect(config):
     except mysql.connector.Error as error:
         if error.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
             print("Bad username or password.")
-            exit()
+            sys.exit()
         elif error.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
             print("Database doesn't exist.")
-            exit()
+            sys.exit()
         else:
             print(error)
-            exit()
+            sys.exit()
     return cnx
 
 def create_tables(cnx):
     cursor = cnx.cursor()
     cursor.execute("SHOW TABLES;")
     if (("Categories",) in cursor
-        and ("Products",) in cursor
-        and ("Searches",) in cursor):
+            and ("Products",) in cursor
+            and ("Searches",) in cursor):
         return False
-        
+
     with open("creation.sql", "r") as file:
         query = file.read()
         # Iterate to execute all statements
-        for result in cursor.execute(query, multi = True):
+        for _ in cursor.execute(query, multi=True):
             pass
-    
+
     cursor.close()
     return True
 
@@ -64,15 +65,15 @@ def remove_category(cnx, category_id):
     cursor.execute(statement, (category_id, ))
     cnx.commit()
     cursor.close()
-    
+
 def get_category_id(cnx, name):
     statement = "SELECT (id) FROM Categories WHERE category_name=%s"
     cursor = cnx.cursor()
     cursor.execute(statement, (name,))
-    id = cursor.fetchone()[0]
+    category_id = cursor.fetchone()[0]
     cursor.close()
 
-    return id
+    return category_id
 
 def add_products(cnx, products):
     """
@@ -93,13 +94,13 @@ def add_products(cnx, products):
     cursor.executemany(statement, products)
     cnx.commit()
     cursor.close()
-    
+
 # Use functions
 def get_categories(cnx, limit):
     """
     Return `limit` items from the Categories table.
     """
-    
+
     statement = "SELECT id FROM Categories ORDER BY RAND() LIMIT %s"
     cursor = cnx.cursor()
     cursor.execute(statement, (limit,))
@@ -127,28 +128,28 @@ def get_products(cnx, category_id, limit):
     # Extract each item from each tuple
     return [i[0] for i in query]
 
-def get_category_name(cnx, id):
+def get_category_name(cnx, category_id):
     statement = "SELECT category_name FROM Categories WHERE id=%s"
     cursor = cnx.cursor()
-    cursor.execute(statement, (id,))
+    cursor.execute(statement, (category_id,))
     name = cursor.fetchone()[0]
     cursor.close()
 
     return name
 
-def get_product_name(cnx, id):
+def get_product_name(cnx, product_id):
     statement = "SELECT product_name FROM Products WHERE id=%s"
     cursor = cnx.cursor()
-    cursor.execute(statement, (id,))
+    cursor.execute(statement, (product_id, ))
     name = cursor.fetchone()[0]
     cursor.close()
 
     return name
 
-def get_product_info(cnx, id):
+def get_product_info(cnx, product_id):
     statement = "SELECT * FROM Products WHERE id=%s"
-    cursor = cnx.cursor(dictionary = True)
-    cursor.execute(statement, (id,))
+    cursor = cnx.cursor(dictionary=True)
+    cursor.execute(statement, (product_id, ))
     query = cursor.fetchone()
     cursor.close()
 
@@ -158,7 +159,7 @@ def get_substitute(cnx, category, product):
     statement = ("SELECT id FROM Products "
                  "WHERE (category=%s AND id<>%s) "
                  "ORDER BY nutriscore, RAND() LIMIT 1")
-    
+
     cursor = cnx.cursor()
     cursor.execute(statement, (category, product))
     query = cursor.fetchone()

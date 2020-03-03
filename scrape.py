@@ -3,12 +3,13 @@
 # Filename: scrape.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:33:08 2020 (+0100)
-# Last-Updated: Tue Mar  3 00:46:24 2020 (+0100)
+# Last-Updated: Tue Mar  3 02:57:42 2020 (+0100)
 #           By: Louise <louise>
 #
-import database
 import logging
-import requests, json, mysql.connector
+import json
+import requests
+import database
 
 def scrape_categories(lcode, ccode):
     url = "https://{ccode}-{lcode}.openfoodfacts.org/categories.json".format(
@@ -22,7 +23,7 @@ def scrape_categories(lcode, ccode):
     # more than one product (otherwise there's really no need
     # to find a substitute)
     categories = [i for i in json_resp["tags"]
-                  if (ccode + ':') in i["id"] and i["products"] > 1]
+                  if ccode + ':' in i["id"] and i["products"] > 1]
     categories_name = [i["name"] for i in categories]
     return categories, categories_name
 
