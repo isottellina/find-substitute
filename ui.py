@@ -3,7 +3,7 @@
 # Filename: ui.py
 # Author: Louise <louise>
 # Created: Mon Mar  2 22:35:19 2020 (+0100)
-# Last-Updated: Tue Mar  3 00:40:44 2020 (+0100)
+# Last-Updated: Tue Mar  3 01:51:31 2020 (+0100)
 #           By: Louise <louise>
 # 
 import database
@@ -36,13 +36,13 @@ def find_substitute(cnx):
     chosen_prod = get_number("? ", range(1, 31)) - 1
 
     # Find a substitute
-    sub = database.get_substitute(cnx, cats[chosen_cat], prod)
+    sub = database.get_substitute(cnx, cats[chosen_cat], prods[chosen_prod])
     sub_info = database.get_product_info(cnx, sub)
-    print("Substitut trouvé:")
+    print("Substitut trouvé :")
     print("Nom :", sub_info["product_name"])
-    print("Où l'acheter:",
+    print("Où l'acheter :",
           sub_info["shops"] if sub_info["shops"] else "Inconnu")
-    print("Page OpenFoodFacts:", sub_info["url"])
+    print("Page OpenFoodFacts :", sub_info["url"])
 
 def main_menu(cnx):
     print("1 - Quel aliment souhaitez-vous remplacer ?")
