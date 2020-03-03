@@ -3,7 +3,7 @@
 # Filename: database.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:36:38 2020 (+0100)
-# Last-Updated: Tue Mar  3 00:38:33 2020 (+0100)
+# Last-Updated: Tue Mar  3 02:15:27 2020 (+0100)
 #           By: Louise <louise>
 #
 import logging
@@ -167,3 +167,22 @@ def get_substitute(cnx, category, product):
     # Garanteed to return a result since there is at least
     # two products in a given category
     return query[0]
+
+def add_search(cnx, searched, given):
+    statement = ("INSERT INTO Searches (product_searched, product_given) "
+                 "VALUES (%s, %s)")
+
+    cursor = cnx.cursor()
+    cursor.execute(statement, (searched, given))
+    cnx.commit()
+    cursor.close()
+
+def get_searches(cnx):
+    statement = "SELECT product_searched, product_given FROM Searches"
+
+    cursor = cnx.cursor()
+    cursor.execute(statement)
+    query = cursor.fetchall()
+    cursor.close()
+
+    return query
