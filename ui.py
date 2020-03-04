@@ -3,7 +3,7 @@
 # Filename: ui.py
 # Author: Louise <louise>
 # Created: Mon Mar  2 22:35:19 2020 (+0100)
-# Last-Updated: Tue Mar  3 02:31:14 2020 (+0100)
+# Last-Updated: Thu Mar  5 00:10:29 2020 (+0100)
 #           By: Louise <louise>
 #
 import database
@@ -14,19 +14,20 @@ def get_number(prompt, ran):
         number = input(prompt)
     return int(number)
 
-def print_product_info(info):
-    print("Nom :", info["product_name"])
+def print_product_info(prod):
+    print("Nom :", prod.name)
     print("Où l'acheter :",
-          info["shops"] if info["shops"] else "Inconnu")
-    print("Page OpenFoodFacts :", info["url"])
+          prod.shops if prod.shops else "Inconnu")
+    print("Page OpenFoodFacts :", prod.url)
 
 def choose_category(cnx):
     cats = database.get_categories(cnx, 30)
+
     print("Choisissez une catégorie :")
     for num, cat in enumerate(cats):
         print("[{}] {}".format(
             str(num + 1).zfill(2),
-            database.get_category_name(cnx, cat)
+            cat.name
         ))
     # A number has to be chosen between 0 and 30 (excluded)
     chosen_cat = get_number("? ", range(1, 31)) - 1
@@ -35,11 +36,12 @@ def choose_category(cnx):
 
 def choose_product(cnx, cat):
     prods = database.get_products(cnx, cat, 30)
+
     print("Choissez un produit :")
     for num, prod in enumerate(prods):
         print("[{}] {}".format(
             str(num + 1).zfill(2),
-            database.get_product_name(cnx, prod)
+            prod.name
         ))
     chosen_prod = get_number("? ", range(1, 31)) - 1
 
@@ -61,9 +63,8 @@ def find_substitute(cnx):
 
     # Find a substitute
     sub = database.get_substitute(cnx, cat, prod)
-    sub_info = database.get_product_info(cnx, sub)
     print("Substitut trouvé :")
-    print_product_info(sub_info)
+    print_product_info(sub)
 
     # Save it to the database (or not)
     save_search(cnx, prod, sub)
@@ -71,10 +72,8 @@ def find_substitute(cnx):
 def recite_substitutes(cnx):
     schs = database.get_searches(cnx)
     for search in schs:
-        product_searched, product_given = search
-        sub_info = database.get_product_info(cnx, product_given)
-        print("Substitut pour :", database.get_product_name(cnx, product_searched))
-        print_product_info(sub_info)
+        print("Substitut pour :", search.product_searched.name)
+        print_product_info(search.product_given)
         print()
 
 def main_menu(cnx):

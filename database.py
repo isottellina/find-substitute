@@ -3,13 +3,53 @@
 # Filename: database.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:36:38 2020 (+0100)
-# Last-Updated: Tue Mar  3 02:53:27 2020 (+0100)
+# Last-Updated: Thu Mar  5 00:09:51 2020 (+0100)
 #           By: Louise <louise>
 #
 import sys
 import logging
 import mysql.connector
 
+class Category:
+    def __init__(self, cnx, category_id):
+        statement = "SELECT category_name FROM Categories WHERE id=%s"
+        self.id = category_id
+        cursor = cnx.cursor(dictionary = True)
+        cursor.execute(statement, (category_id, ))
+
+        self.name = cursor.fetchone()['category_name']
+
+        cursor.close()
+
+class Product:
+    def __init__(self, cnx, product_id):
+        statement = "SELECT * FROM Products WHERE id=%s"
+        self.id = product_id
+        cursor = cnx.cursor(dictionary = True)
+        cursor.execute(statement, (product_id, ))
+        query = cursor.fetchone()
+
+        self.name = query['product_name']
+        self.nutriscore = query['nutriscore']
+        self.category = Category(cnx, query['category'])
+        self.shops = query['shops']
+        self.url = query['url']
+
+        cursor.close()
+
+class Search:
+    def __init__(self, cnx, search_id):
+        statement = "SELECT * FROM Searches WHERE id=%s"
+        self.id = search_id
+        cursor = cnx.cursor(dictionary = True)
+        cursor.execute(statement, (search_id, ))
+        query = cursor.fetchone()
+
+        self.product_searched = Product(cnx, query['product_searched'])
+        self.product_given = Product(cnx, query['product_given'])
+
+        cursor.close()
+        
 def connect(config):
     try:
         cnx = mysql.connector.connect(user=config['database']['user'],
@@ -108,9 +148,9 @@ def get_categories(cnx, limit):
     cursor.close()
 
     # Extract each item from each tuple in the list
-    return [i[0] for i in query]
+    return [Category(cnx, i[0]) for i in query]
 
-def get_products(cnx, category_id, limit):
+def get_products(cnx, category, limit):
     """
     Return `limit` items from the Products table
     that belong to the category category_id.
@@ -121,39 +161,12 @@ def get_products(cnx, category_id, limit):
     statement = ("SELECT id FROM Products WHERE category=%s "
                  "ORDER BY RAND() LIMIT %s")
     cursor = cnx.cursor()
-    cursor.execute(statement, (category_id, limit))
+    cursor.execute(statement, (category.id, limit))
     query = cursor.fetchall()
     cursor.close()
 
     # Extract each item from each tuple
-    return [i[0] for i in query]
-
-def get_category_name(cnx, category_id):
-    statement = "SELECT category_name FROM Categories WHERE id=%s"
-    cursor = cnx.cursor()
-    cursor.execute(statement, (category_id,))
-    name = cursor.fetchone()[0]
-    cursor.close()
-
-    return name
-
-def get_product_name(cnx, product_id):
-    statement = "SELECT product_name FROM Products WHERE id=%s"
-    cursor = cnx.cursor()
-    cursor.execute(statement, (product_id, ))
-    name = cursor.fetchone()[0]
-    cursor.close()
-
-    return name
-
-def get_product_info(cnx, product_id):
-    statement = "SELECT * FROM Products WHERE id=%s"
-    cursor = cnx.cursor(dictionary=True)
-    cursor.execute(statement, (product_id, ))
-    query = cursor.fetchone()
-    cursor.close()
-
-    return query
+    return [Product(cnx, i[0]) for i in query]
 
 def get_substitute(cnx, category, product):
     statement = ("SELECT id FROM Products "
@@ -161,29 +174,29 @@ def get_substitute(cnx, category, product):
                  "ORDER BY nutriscore, RAND() LIMIT 1")
 
     cursor = cnx.cursor()
-    cursor.execute(statement, (category, product))
+    cursor.execute(statement, (category.id, product.id))
     query = cursor.fetchone()
     cursor.close()
 
     # Garanteed to return a result since there is at least
     # two products in a given category
-    return query[0]
+    return Product(cnx, query[0])
 
 def add_search(cnx, searched, given):
     statement = ("INSERT INTO Searches (product_searched, product_given) "
                  "VALUES (%s, %s)")
 
     cursor = cnx.cursor()
-    cursor.execute(statement, (searched, given))
+    cursor.execute(statement, (searched.id, given.id))
     cnx.commit()
     cursor.close()
 
 def get_searches(cnx):
-    statement = "SELECT product_searched, product_given FROM Searches"
+    statement = "SELECT id FROM Searches"
 
     cursor = cnx.cursor()
     cursor.execute(statement)
     query = cursor.fetchall()
     cursor.close()
 
-    return query
+    return [Search(cnx, i[0]) for i in query]
