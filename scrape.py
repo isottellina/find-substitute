@@ -1,17 +1,21 @@
-# scrape.py --- 
+# scrape.py ---
 # This file is supposed to scrape the OpenFoodFacts database
 # Filename: scrape.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:33:08 2020 (+0100)
-# Last-Updated: Tue Mar  3 02:57:42 2020 (+0100)
+# Last-Updated: Thu Mar  5 23:50:49 2020 (+0100)
 #           By: Louise <louise>
 #
 import logging
-import json
 import requests
 import database
 
 def scrape_categories(lcode, ccode):
+    """
+    This function returns a tuple of:
+     - a list of dictionaries representing the categories
+     - the same list but containing only their name
+    """
     url = "https://{ccode}-{lcode}.openfoodfacts.org/categories.json".format(
         ccode=ccode.strip(),
         lcode=lcode.strip()
@@ -28,13 +32,17 @@ def scrape_categories(lcode, ccode):
     return categories, categories_name
 
 def scrape_products(category, category_id):
+    """
+    This function scrapes all scrapable products from a given
+    category, and returns a list of dictionaries.
+    """
     logging.info("Scraping %s.", category["name"])
     category_products = []
-    
+
     for page_nb in range(1, (category["products"] // 20) + 2):
         category_url = "{}/{}.json".format(category["url"], page_nb)
         category_page = requests.get(category_url).json()
-        
+
         category_products += [
             {
                 "product_name": product["product_name"],
@@ -55,6 +63,13 @@ def scrape_products(category, category_id):
     return category_products
 
 def scrape(cnx, lcode, ccode):
+    """
+    This function scrapes all it can scrape from the API, first
+    the categories then all the usable products in them. It removes
+    the category if it turns out to be empty once all the useless
+    products weeded out (like the ones without a nutriscore or a
+    name).
+    """
     logging.info("Getting and adding category info")
     categories, categories_name = scrape_categories(lcode, ccode)
     database.add_categories(cnx, categories_name)

@@ -3,7 +3,7 @@
 # Filename: database.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:36:38 2020 (+0100)
-# Last-Updated: Thu Mar  5 00:09:51 2020 (+0100)
+# Last-Updated: Thu Mar  5 23:46:17 2020 (+0100)
 #           By: Louise <louise>
 #
 import sys
@@ -11,10 +11,11 @@ import logging
 import mysql.connector
 
 class Category:
+    """Category objects represent a record in the Categories table"""
     def __init__(self, cnx, category_id):
         statement = "SELECT category_name FROM Categories WHERE id=%s"
         self.id = category_id
-        cursor = cnx.cursor(dictionary = True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute(statement, (category_id, ))
 
         self.name = cursor.fetchone()['category_name']
@@ -22,10 +23,11 @@ class Category:
         cursor.close()
 
 class Product:
+    """Product objects represent a record in the Products table"""
     def __init__(self, cnx, product_id):
         statement = "SELECT * FROM Products WHERE id=%s"
         self.id = product_id
-        cursor = cnx.cursor(dictionary = True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute(statement, (product_id, ))
         query = cursor.fetchone()
 
@@ -38,10 +40,11 @@ class Product:
         cursor.close()
 
 class Search:
+    """Search objects represent a record in the Searches table"""
     def __init__(self, cnx, search_id):
         statement = "SELECT * FROM Searches WHERE id=%s"
         self.id = search_id
-        cursor = cnx.cursor(dictionary = True)
+        cursor = cnx.cursor(dictionary=True)
         cursor.execute(statement, (search_id, ))
         query = cursor.fetchone()
 
@@ -49,8 +52,12 @@ class Search:
         self.product_given = Product(cnx, query['product_given'])
 
         cursor.close()
-        
+
 def connect(config):
+    """
+    This function creates a connexion to the database, and if successful,
+    returns it.
+    """
     try:
         cnx = mysql.connector.connect(user=config['database']['user'],
                                       password=config['database']['password'],
@@ -69,6 +76,11 @@ def connect(config):
     return cnx
 
 def create_tables(cnx):
+    """
+    This function checks if the tables exist, and if they don't,
+    creates them and returns True to signal the main function to
+    scrape the API.
+    """
     cursor = cnx.cursor()
     cursor.execute("SHOW TABLES;")
     if (("Categories",) in cursor
@@ -87,6 +99,10 @@ def create_tables(cnx):
 
 # Scraping functions
 def add_categories(cnx, names):
+    """
+    This function takes a list of names of categories and adds
+    them to the database all at a time.
+    """
     statement = "INSERT INTO Categories (category_name) VALUES (%s)"
     cursor = cnx.cursor()
     # We have to transmute every list element into a singleton for the request
@@ -96,9 +112,7 @@ def add_categories(cnx, names):
     cursor.close()
 
 def remove_category(cnx, category_id):
-    """
-    Remove a category from the table.
-    """
+    """This function removes a category from the table, using its ID."""
 
     statement = "DELETE FROM Categories WHERE id=%s"
     cursor = cnx.cursor()
@@ -107,6 +121,7 @@ def remove_category(cnx, category_id):
     cursor.close()
 
 def get_category_id(cnx, name):
+    """This function returns the ID of a category using its name."""
     statement = "SELECT (id) FROM Categories WHERE category_name=%s"
     cursor = cnx.cursor()
     cursor.execute(statement, (name,))
@@ -169,6 +184,11 @@ def get_products(cnx, category, limit):
     return [Product(cnx, i[0]) for i in query]
 
 def get_substitute(cnx, category, product):
+    """
+    This function returns a substitute for a product
+    within a category that isn't the product and has
+    the best nutriscore possible.
+    """
     statement = ("SELECT id FROM Products "
                  "WHERE (category=%s AND id<>%s) "
                  "ORDER BY nutriscore, RAND() LIMIT 1")
@@ -183,6 +203,7 @@ def get_substitute(cnx, category, product):
     return Product(cnx, query[0])
 
 def add_search(cnx, searched, given):
+    """This function adds a past search to the database."""
     statement = ("INSERT INTO Searches (product_searched, product_given) "
                  "VALUES (%s, %s)")
 
@@ -192,6 +213,7 @@ def add_search(cnx, searched, given):
     cursor.close()
 
 def get_searches(cnx):
+    """This function returns all searches from the database."""
     statement = "SELECT id FROM Searches"
 
     cursor = cnx.cursor()

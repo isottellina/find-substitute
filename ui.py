@@ -3,24 +3,33 @@
 # Filename: ui.py
 # Author: Louise <louise>
 # Created: Mon Mar  2 22:35:19 2020 (+0100)
-# Last-Updated: Thu Mar  5 00:10:29 2020 (+0100)
+# Last-Updated: Thu Mar  5 23:55:30 2020 (+0100)
 #           By: Louise <louise>
 #
 import database
 
 def get_number(prompt, ran):
+    """
+    Get a number from the user within a range and repeats
+    itself until it's been given a valid number.
+    """
     number = input(prompt)
     while not number.isdigit() or int(number) not in ran:
         number = input(prompt)
     return int(number)
 
 def print_product_info(prod):
+    """Prints the information about a product."""
     print("Nom :", prod.name)
     print("Où l'acheter :",
           prod.shops if prod.shops else "Inconnu")
     print("Page OpenFoodFacts :", prod.url)
 
 def choose_category(cnx):
+    """
+    Prints a list of categories and asks the user to choose
+    between them.
+    """
     cats = database.get_categories(cnx, 30)
 
     print("Choisissez une catégorie :")
@@ -35,6 +44,10 @@ def choose_category(cnx):
     return cats[chosen_cat]
 
 def choose_product(cnx, cat):
+    """
+    Prints a list of products within a category, and asks
+    the user to choose between them.
+    """
     prods = database.get_products(cnx, cat, 30)
 
     print("Choissez un produit :")
@@ -48,6 +61,7 @@ def choose_product(cnx, cat):
     return prods[chosen_prod]
 
 def save_search(cnx, searched, given):
+    """Saves a search in the database."""
     print("Voulez-vous enregistrer cette recherche dans la base de données ?")
     print("[1] Oui")
     print("[2] Non")
@@ -57,6 +71,11 @@ def save_search(cnx, searched, given):
         database.add_search(cnx, searched, given)
 
 def find_substitute(cnx):
+    """
+    Main flow. Asks the user to choose a product, then finds
+    a substitute and asks the user if she/he wishes to save
+    the result in the database.
+    """
     # Choose a product
     cat = choose_category(cnx)
     prod = choose_product(cnx, cat)
@@ -70,6 +89,7 @@ def find_substitute(cnx):
     save_search(cnx, prod, sub)
 
 def recite_substitutes(cnx):
+    """Prints all the past searches that have been saved."""
     schs = database.get_searches(cnx)
     for search in schs:
         print("Substitut pour :", search.product_searched.name)
@@ -77,6 +97,7 @@ def recite_substitutes(cnx):
         print()
 
 def main_menu(cnx):
+    """Main menu, before one of the 2 aforementioned functions."""
     print("[1] Quel aliment souhaitez-vous remplacer ?")
     print("[2] Retrouver mes aliments substitués.")
     choice = get_number("Quel choix choisissez-vous ? ", range(1, 3))
