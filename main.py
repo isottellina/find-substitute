@@ -3,14 +3,14 @@
 # Filename: main.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 11:44:41 2020 (+0100)
-# Last-Updated: Thu Mar  5 23:57:18 2020 (+0100)
+# Last-Updated: Fri Mar  6 16:05:14 2020 (+0100)
 #           By: Louise <louise>
 #
 import logging
 import configparser
-import database
-import scrape
-import ui
+from database import connect, create_tables
+from scrape import Scraper
+from ui import main_menu
 
 # Config
 def parse_config(file_name):
@@ -29,15 +29,15 @@ def main():
     """
     config = parse_config("conf.ini")
     logging.basicConfig(level=config["general"]["logging"])
-    cnx = database.connect(config)
+    cnx = connect(config)
 
-    if database.create_tables(cnx):
+    if create_tables(cnx):
         logging.warning("Database non-existent, creating and scraping.")
-        scrape.scrape(cnx,
-                      config["openfoodfacts"]["lcode"],
-                      config["openfoodfacts"]["ccode"])
+        scraper = Scraper(config["openfoodfacts"]["lcode"],
+                          config["openfoodfacts"]["ccode"])
+        scraper.scrape(cnx)
 
-    ui.main_menu(cnx)
+    main_menu(cnx)
     cnx.close()
 
 if __name__ == "__main__":
