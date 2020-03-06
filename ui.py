@@ -3,10 +3,10 @@
 # Filename: ui.py
 # Author: Louise <louise>
 # Created: Mon Mar  2 22:35:19 2020 (+0100)
-# Last-Updated: Thu Mar  5 23:55:30 2020 (+0100)
+# Last-Updated: Fri Mar  6 00:45:36 2020 (+0100)
 #           By: Louise <louise>
 #
-import database
+from database import Category, Product, Search
 
 def get_number(prompt, ran):
     """
@@ -30,7 +30,7 @@ def choose_category(cnx):
     Prints a list of categories and asks the user to choose
     between them.
     """
-    cats = database.get_categories(cnx, 30)
+    cats = Category.get_categories(cnx, 30)
 
     print("Choisissez une catégorie :")
     for num, cat in enumerate(cats):
@@ -48,7 +48,7 @@ def choose_product(cnx, cat):
     Prints a list of products within a category, and asks
     the user to choose between them.
     """
-    prods = database.get_products(cnx, cat, 30)
+    prods = Product.get_products(cnx, cat, 30)
 
     print("Choissez un produit :")
     for num, prod in enumerate(prods):
@@ -68,7 +68,7 @@ def save_search(cnx, searched, given):
     choice = get_number("? ", range(1, 3))
 
     if choice == 1:
-        database.add_search(cnx, searched, given)
+        Search.add_search(cnx, searched, given)
 
 def find_substitute(cnx):
     """
@@ -81,7 +81,7 @@ def find_substitute(cnx):
     prod = choose_product(cnx, cat)
 
     # Find a substitute
-    sub = database.get_substitute(cnx, cat, prod)
+    sub = prod.get_substitute(cnx)
     print("Substitut trouvé :")
     print_product_info(sub)
 
@@ -90,7 +90,7 @@ def find_substitute(cnx):
 
 def recite_substitutes(cnx):
     """Prints all the past searches that have been saved."""
-    schs = database.get_searches(cnx)
+    schs = Search.get_searches(cnx)
     for search in schs:
         print("Substitut pour :", search.product_searched.name)
         print_product_info(search.product_given)

@@ -3,12 +3,12 @@
 # Filename: scrape.py
 # Author: Louise <louise>
 # Created: Thu Feb 27 12:33:08 2020 (+0100)
-# Last-Updated: Thu Mar  5 23:50:49 2020 (+0100)
+# Last-Updated: Fri Mar  6 00:49:38 2020 (+0100)
 #           By: Louise <louise>
 #
 import logging
 import requests
-import database
+from database import Category, Product
 
 def scrape_categories(lcode, ccode):
     """
@@ -31,16 +31,16 @@ def scrape_categories(lcode, ccode):
     categories_name = [i["name"] for i in categories]
     return categories, categories_name
 
-def scrape_products(category, category_id):
+def scrape_products(category_json, category_id):
     """
     This function scrapes all scrapable products from a given
     category, and returns a list of dictionaries.
     """
-    logging.info("Scraping %s.", category["name"])
+    logging.info("Scraping %s.", category_json["name"])
     category_products = []
 
-    for page_nb in range(1, (category["products"] // 20) + 2):
-        category_url = "{}/{}.json".format(category["url"], page_nb)
+    for page_nb in range(1, (category_json["products"] // 20) + 2):
+        category_url = "{}/{}.json".format(category_json["url"], page_nb)
         category_page = requests.get(category_url).json()
 
         category_products += [
@@ -72,17 +72,17 @@ def scrape(cnx, lcode, ccode):
     """
     logging.info("Getting and adding category info")
     categories, categories_name = scrape_categories(lcode, ccode)
-    database.add_categories(cnx, categories_name)
+    Category.add_bulk(cnx, categories_name)
 
     logging.info("Getting and adding product info.")
-    for category in categories:
-        category_id = database.get_category_id(cnx, category["name"])
-        products = scrape_products(category, category_id)
+    for category_json in categories:
+        category = Category.from_name(cnx, category_json["name"])
+        products = scrape_products(category_json, category.id)
 
         # We only register the products if there is 2 or more products
         # after they have been filtered, or else there is no point.
         # If there is no point we might as well remove the category.
         if len(products) > 1:
-            database.add_products(cnx, products)
+            Product.add_products(cnx, products)
         else:
-            database.remove_category(cnx, category_id)
+            category.remove(cnx)
