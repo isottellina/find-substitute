@@ -1,2 +1,2 @@
 mysql-connector-python==8.0.19
-requests==2.23.0
+requests==2.31.0
